@@ -1,3 +1,48 @@
+import cv2
+import torch
+import numpy as np
+
+from temporal import TemporalHeatmapFilter
+
+from model import (
+    SimpleUNet,
+    CoarseDetector,
+    FineDetector
+)
+
+from utils import (
+    underwater_enhance,
+    crop_around_point,
+    peak_to_xy
+)
+
+
+def load_model(path, device):
+
+    ckpt = torch.load(
+        path,
+        map_location=device
+    )
+
+    model_type = ckpt["model_type"]
+
+    if model_type == "coarse":
+        model = CoarseDetector()
+
+    elif model_type == "fine":
+        model = FineDetector()
+
+    else:
+        model = SimpleUNet()
+
+    model.load_state_dict(
+        ckpt["model_state_dict"]
+    )
+
+    model.to(device)
+    model.eval()
+
+    return model
 def main(
 
     camera_index=0,
